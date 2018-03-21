@@ -14,11 +14,15 @@ limitations under the License.
 package e2e
 
 import (
+	"os"
+	"os/exec"
+	"path"
 	"testing"
 
 	"github.com/golang/glog"
 	"github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/config"
+	"github.com/onsi/ginkgo/reporters"
 	"github.com/onsi/gomega"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
@@ -29,6 +33,8 @@ import (
 	_ "github.com/jetstack/cert-manager/test/e2e/ingress"
 	_ "github.com/jetstack/cert-manager/test/e2e/issuer"
 )
+
+const certManagerDeploymentNamespace = "cert-manager"
 
 // TestE2E checks configuration parameters (specified through flags) and then runs
 // E2E tests using the Ginkgo runner.
@@ -42,6 +48,61 @@ func RunE2ETests(t *testing.T) {
 		config.GinkgoConfig.SkipString = `\[Flaky\]|\[Feature:.+\]`
 	}
 
+	glog.Infof("Installing cert-manager helm chart")
+	InstallHelmChart(t, releaseName, "./contrib/charts/cert-manager", certManagerDeploymentNamespace, "./test/fixtures/cert-manager-values.yaml")
+
+	glog.Infof("Installing boulder chart")
+	// 10 minute timeout for boulder install due to large images
+	extraArgs := []string{"--timeout", "600"}
+	if framework.TestContext.BoulderImageRepo != "" {
+		extraArgs = append(extraArgs, "--set", "image.repository="+framework.TestContext.BoulderImageRepo)
+	}
+	if framework.TestContext.BoulderImageTag != "" {
+		extraArgs = append(extraArgs, "--set", "image.tag="+framework.TestContext.BoulderImageTag)
+	}
+	InstallHelmChart(t, "boulder", "./contrib/charts/boulder", "boulder", "./test/fixtures/boulder-values.yaml", extraArgs...)
 	glog.Infof("Starting e2e run %q on Ginkgo node %d", framework.RunId, config.GinkgoConfig.ParallelNode)
-	ginkgo.RunSpecs(t, "cert-manager e2e suite")
+
+	var r []ginkgo.Reporter
+	if framework.TestContext.ReportDir != "" {
+		r = append(r, reporters.NewJUnitReporter(path.Join(framework.TestContext.ReportDir, "junit_00.xml")))
+	}
+	if !ginkgo.RunSpecsWithDefaultAndCustomReporters(t, "cert-manager e2e suite", r) {
+		PrintPodLogs(t)
+	}
+}
+
+const releaseName = "cm"
+
+func InstallHelmChart(t *testing.T, releaseName, chartName, namespace, values string, extraArgs ...string) {
+	args := []string{"install", chartName, "--namespace", namespace, "--name", releaseName, "--values", values, "--wait"}
+	args = append(args, extraArgs...)
+	cmd := exec.Command("helm", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		t.Errorf("Error installing %q: %s", releaseName, err)
+		t.FailNow()
+		return
+	}
+}
+
+func PrintPodLogs(t *testing.T) {
+	glog.Infof("Printing cert-manager logs")
+	cmd := exec.Command("kubectl", "logs", "--namespace", "cert-manager", "-l", "app=cert-manager", "-l", "release=cm", "-c", "cert-manager")
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	err := cmd.Run()
+	if err != nil {
+		t.Errorf("Error printing cert-manager logs: %s", err)
+	}
+	glog.Infof("Printing ingress-shim logs")
+	cmdShim := exec.Command("kubectl", "logs", "--namespace", "cert-manager", "-l", "app=cert-manager", "-l", "release=cm", "-c", "ingress-shim")
+	cmdShim.Stdout = os.Stdout
+	cmdShim.Stderr = os.Stderr
+	err = cmdShim.Run()
+	if err != nil {
+		t.Errorf("Error printing ingress-shim logs: %s", err)
+	}
 }

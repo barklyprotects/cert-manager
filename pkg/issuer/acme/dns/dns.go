@@ -3,6 +3,7 @@ package dns
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/golang/glog"
@@ -10,6 +11,7 @@ import (
 	corev1listers "k8s.io/client-go/listers/core/v1"
 
 	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/azuredns"
 	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/clouddns"
 	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/cloudflare"
 	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/route53"
@@ -26,11 +28,25 @@ type solver interface {
 	Timeout() (timeout, interval time.Duration)
 }
 
+// dnsProviderConstructors defines how each provider may be constructed.
+// It is useful for mocking out a given provider since an alternate set of
+// constructors may be set.
+type dnsProviderConstructors struct {
+	cloudDNS   func(project string, serviceAccount []byte) (*clouddns.DNSProvider, error)
+	cloudFlare func(email, apikey string) (*cloudflare.DNSProvider, error)
+	route53    func(accessKey, secretKey, hostedZoneID, region string) (*route53.DNSProvider, error)
+	azureDNS   func(clientID, clientSecret, subscriptionID, tenentID, resourceGroupName, hostedZoneName string) (*azuredns.DNSProvider, error)
+}
+
+// Solver is a solver for the acme dns01 challenge.
+// Given a Certificate object, it determines the correct DNS provider based on
+// the certificate, and configures it based on the referenced issuer.
 type Solver struct {
-	issuer            v1alpha1.GenericIssuer
-	client            kubernetes.Interface
-	secretLister      corev1listers.SecretLister
-	resourceNamespace string
+	issuer                  v1alpha1.GenericIssuer
+	client                  kubernetes.Interface
+	secretLister            corev1listers.SecretLister
+	dnsProviderConstructors dnsProviderConstructors
+	resourceNamespace       string
 }
 
 func (s *Solver) Present(ctx context.Context, crt *v1alpha1.Certificate, domain, token, key string) error {
@@ -71,15 +87,19 @@ func (s *Solver) Wait(ctx context.Context, crt *v1alpha1.Certificate, domain, to
 			}()
 			return out
 		}():
-			if r.bool {
+
+			if r.error != nil {
+				glog.Warningf("Failed to check for DNS propagation of %q: %v", domain, r.error)
+			} else if r.bool {
 				// TODO: move this to somewhere else
 				// TODO: make this wait for whatever the record *was*, not is now
 				glog.V(4).Infof("Waiting DNS record TTL (%ds) to allow propagation for propagation of DNS record for domain %q", ttl, fqdn)
 				time.Sleep(time.Second * time.Duration(ttl))
 				glog.V(4).Infof("ACME DNS01 validation record propagated for %q", fqdn)
 				return nil
+			} else {
+				glog.V(4).Infof("DNS record for %q not yet propagated", domain)
 			}
-			glog.V(4).Infof("DNS record for %q not yet propagated", domain)
 			time.Sleep(interval)
 		case <-ctx.Done():
 			return ctx.Err()
@@ -118,7 +138,7 @@ func (s *Solver) solverFor(crt *v1alpha1.Certificate, domain string) (solver, er
 		}
 		saBytes := saSecret.Data[providerConfig.CloudDNS.ServiceAccount.Key]
 
-		impl, err = clouddns.NewDNSProviderServiceAccountBytes(providerConfig.CloudDNS.Project, saBytes)
+		impl, err = s.dnsProviderConstructors.cloudDNS(providerConfig.CloudDNS.Project, saBytes)
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating google clouddns challenge solver: %s", err.Error())
 		}
@@ -131,7 +151,7 @@ func (s *Solver) solverFor(crt *v1alpha1.Certificate, domain string) (solver, er
 		email := providerConfig.Cloudflare.Email
 		apiKey := string(apiKeySecret.Data[providerConfig.Cloudflare.APIKey.Key])
 
-		impl, err = cloudflare.NewDNSProviderCredentials(email, apiKey)
+		impl, err = s.dnsProviderConstructors.cloudFlare(email, apiKey)
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating cloudflare challenge solver: %s", err.Error())
 		}
@@ -151,14 +171,33 @@ func (s *Solver) solverFor(crt *v1alpha1.Certificate, domain string) (solver, er
 		}
 
 		impl, err = route53.NewDNSProviderAccessKey(
-			providerConfig.Route53.AccessKeyID,
-			secretAccessKey,
+      strings.TrimSpace(providerConfig.Route53.AccessKeyID),
+      strings.TrimSpace(secretAccessKey),
 			providerConfig.Route53.HostedZoneID,
 			providerConfig.Route53.Region,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("error instantiating route53 challenge solver: %s", err.Error())
 		}
+	case providerConfig.AzureDNS != nil:
+		clientSecret, err := s.secretLister.Secrets(s.resourceNamespace).Get(providerConfig.AzureDNS.ClientSecret.Name)
+		if err != nil {
+			return nil, fmt.Errorf("error getting azuredns client secret: %s", err.Error())
+		}
+
+		clientSecretBytes, ok := clientSecret.Data[providerConfig.AzureDNS.ClientSecret.Key]
+		if !ok {
+			return nil, fmt.Errorf("error getting azure dns client secret: key '%s' not found in secret", providerConfig.AzureDNS.ClientSecret.Key)
+		}
+
+		impl, err = s.dnsProviderConstructors.azureDNS(
+			providerConfig.AzureDNS.ClientID,
+			string(clientSecretBytes),
+			providerConfig.AzureDNS.SubscriptionID,
+			providerConfig.AzureDNS.TenantID,
+			providerConfig.AzureDNS.ResourceGroupName,
+			providerConfig.AzureDNS.HostedZoneName,
+		)
 	default:
 		return nil, fmt.Errorf("no dns provider config specified for domain '%s'", domain)
 	}
@@ -167,5 +206,16 @@ func (s *Solver) solverFor(crt *v1alpha1.Certificate, domain string) (solver, er
 }
 
 func NewSolver(issuer v1alpha1.GenericIssuer, client kubernetes.Interface, secretLister corev1listers.SecretLister, resourceNamespace string) *Solver {
-	return &Solver{issuer, client, secretLister, resourceNamespace}
+	return &Solver{
+		issuer,
+		client,
+		secretLister,
+		dnsProviderConstructors{
+			clouddns.NewDNSProviderServiceAccountBytes,
+			cloudflare.NewDNSProviderCredentials,
+			route53.NewDNSProviderAccessKey,
+			azuredns.NewDNSProviderCredentials,
+		},
+		resourceNamespace,
+	}
 }

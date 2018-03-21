@@ -25,7 +25,7 @@ import (
 	"github.com/jetstack/cert-manager/pkg/controller/clusterissuers"
 	"github.com/jetstack/cert-manager/pkg/issuer"
 	"github.com/jetstack/cert-manager/pkg/util/kube"
-	kubeinformers "github.com/jetstack/cert-manager/third_party/k8s.io/client-go/informers"
+	kubeinformers "k8s.io/client-go/informers"
 )
 
 const controllerAgentName = "cert-manager-controller"
@@ -53,7 +53,7 @@ func Run(opts *options.ControllerOptions, stopCh <-chan struct{}) {
 				defer wg.Done()
 				glog.V(4).Infof("Starting %s controller", n)
 
-				err := fn(2, stopCh)
+				err := fn(5, stopCh)
 
 				if err != nil {
 					glog.Fatalf("error running %s controller: %s", n, err.Error())
@@ -151,8 +151,8 @@ func startLeaderElection(opts *options.ControllerOptions, leaderElectionClient k
 	}
 
 	// Lock required for leader election
-	rl := resourcelock.EndpointsLock{
-		EndpointsMeta: metav1.ObjectMeta{
+	rl := resourcelock.ConfigMapLock{
+		ConfigMapMeta: metav1.ObjectMeta{
 			Namespace: opts.LeaderElectionNamespace,
 			Name:      "cert-manager-controller",
 		},

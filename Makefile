@@ -11,6 +11,8 @@ BUILD_TAG := build
 # e2e tests.
 E2E_NGINX_CERTIFICATE_DOMAIN=
 
+BOULDER_IMAGE_REPO=quay.io/munnerz/boulder
+
 # AppVersion is set as the AppVersion to be compiled into the controller binary.
 # It's used as the default version of the 'acmesolver' image to use for ACME
 # challenge requests, and any other future provider that requires additional
@@ -35,13 +37,16 @@ GOOS := linux
 GOARCH := amd64
 GOLDFLAGS := -ldflags "-X $(PACKAGE_NAME)/pkg/util.AppGitState=${GIT_STATE} -X $(PACKAGE_NAME)/pkg/util.AppGitCommit=${GIT_COMMIT} -X $(PACKAGE_NAME)/pkg/util.AppVersion=${APP_VERSION}"
 
-.PHONY: verify build docker_build push generate generate_verify $(CMDS) go_test go_fmt $(DOCKER_BUILD_TARGETS) $(DOCKER_PUSH_TARGETS)
+.PHONY: verify build docker_build push generate generate_verify deploy_verify \
+	$(CMDS) go_test go_fmt e2e_test go_verify hack_verify hack_verify_pr \
+	$(DOCKER_BUILD_TARGETS) $(DOCKER_PUSH_TARGETS)
 
 # Alias targets
 ###############
 
-verify: generate_verify hack_verify go_verify
 build: $(CMDS) docker_build
+verify: generate_verify deploy_verify hack_verify go_verify
+verify_pr: hack_verify_pr
 docker_build: $(DOCKER_BUILD_TARGETS)
 docker_push: $(DOCKER_PUSH_TARGETS)
 push: build docker_push
@@ -62,6 +67,14 @@ hack_verify:
 	$(HACK_DIR)/verify-links.sh
 	@echo Running errexit checker
 	$(HACK_DIR)/verify-errexit.sh
+
+hack_verify_pr:
+	@echo Running helm chart version checker
+	$(HACK_DIR)/verify-chart-version.sh
+
+deploy_verify:
+	@echo Running deploy-gen
+	$(HACK_DIR)/verify-deploy-gen.sh
 
 # Go targets
 #################
@@ -96,15 +109,14 @@ go_fmt:
 e2e_test:
 	# Build the e2e tests
 	go test -o e2e-tests -c ./test/e2e
+	mkdir -p "$$(pwd)/_artifacts"
 	# TODO: make these paths configurable
 	# Run e2e tests
 	KUBECONFIG=$$HOME/.kube/config CERTMANAGERCONFIG=$$HOME/.kube/config \
 		./e2e-tests \
-			-cert-manager-image-pull-policy=Never \
-			-cert-manager-image=$(REGISTRY)/$(APP_NAME)-controller:$(BUILD_TAG) \
-			-ingress-shim-image-pull-policy=Never \
-			-ingress-shim-image=$(REGISTRY)/$(APP_NAME)-ingress-shim:$(BUILD_TAG) \
-			-acme-nginx-certificate-domain=$(E2E_NGINX_CERTIFICATE_DOMAIN)
+			-acme-nginx-certificate-domain=$(E2E_NGINX_CERTIFICATE_DOMAIN) \
+			-boulder-image-repo=$(BOULDER_IMAGE_REPO) \
+			-report-dir=./_artifacts
 
 # Docker targets
 ################

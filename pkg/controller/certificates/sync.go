@@ -24,28 +24,28 @@ import (
 const renewBefore = time.Hour * 24 * 30
 
 const (
-	errorIssuerNotFound       = "ErrorIssuerNotFound"
-	errorIssuerNotReady       = "ErrorIssuerNotReady"
-	errorIssuerInit           = "ErrorIssuerInitialization"
-	errorCheckCertificate     = "ErrorCheckCertificate"
-	errorGetCertificate       = "ErrorGetCertificate"
-	errorPreparingCertificate = "ErrorPrepareCertificate"
-	errorIssuingCertificate   = "ErrorIssueCertificate"
-	errorRenewingCertificate  = "ErrorRenewCertificate"
-	errorSavingCertificate    = "ErrorSaveCertificate"
+	errorIssuerNotFound       = "ErrIssuerNotFound"
+	errorIssuerNotReady       = "ErrIssuerNotReady"
+	errorIssuerInit           = "ErrIssuerInitialization"
+	errorCheckCertificate     = "ErrCheckCertificate"
+	errorGetCertificate       = "ErrGetCertificate"
+	errorPreparingCertificate = "ErrPrepareCertificate"
+	errorIssuingCertificate   = "ErrIssueCertificate"
+	errorRenewingCertificate  = "ErrRenewCertificate"
+	errorSavingCertificate    = "ErrSaveCertificate"
 
 	reasonPreparingCertificate = "PrepareCertificate"
 	reasonIssuingCertificate   = "IssueCertificate"
 	reasonRenewingCertificate  = "RenewCertificate"
 
-	successCeritificateIssued  = "CeritifcateIssued"
-	successCeritificateRenewed = "CeritifcateRenewed"
-	successRenewalScheduled    = "RenewalScheduled"
+	successCertificateIssued  = "CertificateIssued"
+	successCertificateRenewed = "CertificateRenewed"
+	successRenewalScheduled   = "RenewalScheduled"
 
 	messageIssuerNotFound            = "Issuer %s does not exist"
 	messageIssuerNotReady            = "Issuer %s not ready"
 	messageIssuerErrorInit           = "Error initializing issuer: "
-	messageErrorCheckCertificate     = "Error checking existing TLS certificate: "
+	messageErrorCheckCertificate     = "Error checking existing TLS certificate, will re-issue: "
 	messageErrorGetCertificate       = "Error getting TLS certificate: "
 	messageErrorPreparingCertificate = "Error preparing issuer for certificate: "
 	messageErrorIssuingCertificate   = "Error issuing certificate: "
@@ -56,8 +56,8 @@ const (
 	messageIssuingCertificate   = "Issuing certificate..."
 	messageRenewingCertificate  = "Renewing certificate..."
 
-	messageCertificateIssued  = "Certificated issued successfully"
-	messageCertificateRenewed = "Certificated renewed successfully"
+	messageCertificateIssued  = "Certificate issued successfully"
+	messageCertificateRenewed = "Certificate renewed successfully"
 	messageRenewalScheduled   = "Certificate scheduled for renewal in %d hours"
 )
 
@@ -105,7 +105,7 @@ func (c *Controller) Sync(ctx context.Context, crt *v1alpha1.Certificate) (err e
 	if err != nil {
 		s := messageErrorCheckCertificate + err.Error()
 		glog.Info(s)
-		c.recorder.Event(crt, api.EventTypeWarning, errorCheckCertificate, s)
+		c.recorder.Event(crt, api.EventTypeNormal, errorCheckCertificate, s)
 	}
 
 	// if an error is returned, and that error is something other than
@@ -267,7 +267,7 @@ func (c *Controller) issue(ctx context.Context, issuer issuer.Interface, crt *v1
 
 	s = messageCertificateIssued
 	glog.Info(s)
-	c.recorder.Event(crt, api.EventTypeNormal, successCeritificateIssued, s)
+	c.recorder.Event(crt, api.EventTypeNormal, successCertificateIssued, s)
 
 	return nil
 }
@@ -311,7 +311,7 @@ func (c *Controller) renew(ctx context.Context, issuer issuer.Interface, crt *v1
 
 	s = messageCertificateRenewed
 	glog.Info(s)
-	c.recorder.Event(crt, api.EventTypeNormal, successCeritificateRenewed, s)
+	c.recorder.Event(crt, api.EventTypeNormal, successCertificateRenewed, s)
 
 	return nil
 }
