@@ -3,7 +3,7 @@
 cert-manager can be configured to automatically provision TLS certificates for
 Ingress resources via annotations on your Ingresses.
 
-A small sub-component of cert-manager, [ingress-shim](https://github.com/jetstack/cert-manager/tree/master/cmd/ingress-shim)
+A small sub-component of cert-manager, [ingress-shim](https://github.com/barklyprotects/cert-manager/tree/master/cmd/ingress-shim)
 is responsible for this.
 
 ## How it works

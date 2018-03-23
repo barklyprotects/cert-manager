@@ -1,4 +1,4 @@
-PACKAGE_NAME := github.com/jetstack/cert-manager
+PACKAGE_NAME := github.com/barklyprotects/cert-manager
 REGISTRY := quay.io/jetstack
 APP_NAME := cert-manager
 IMAGE_TAGS := canary

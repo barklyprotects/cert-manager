@@ -22,9 +22,9 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
-	"github.com/jetstack/cert-manager/test/e2e/framework"
-	"github.com/jetstack/cert-manager/test/util"
+	"github.com/barklyprotects/cert-manager/pkg/apis/certmanager/v1alpha1"
+	"github.com/barklyprotects/cert-manager/test/e2e/framework"
+	"github.com/barklyprotects/cert-manager/test/util"
 )
 
 const testingACMEEmail = "test@example.com"

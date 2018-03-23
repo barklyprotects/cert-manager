@@ -26,7 +26,7 @@ if [ -z "${PULL_BASE_SHA+a}" ]; then
 fi
 
 if ! git remote get-url jetstack; then
-  git remote add jetstack https://github.com/jetstack/cert-manager
+  git remote add jetstack https://github.com/barklyprotects/cert-manager
 fi
 
 git fetch jetstack "${PULL_BASE_SHA}:refs/remotes/jetstack/pull-base"

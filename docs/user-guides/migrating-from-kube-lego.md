@@ -10,7 +10,7 @@ of this project. There are a number of key differences between the two:
 | --------- | --------- | ------------ |
 | Configuration | Annotations on Ingress resources | CRDs |
 | CAs | ACME **only** | ACME, signing keypair |
-| Kubernetes | v1.2 - v1.8 | v1.7+ (v1.6+ after [#201](https://github.com/jetstack/cert-manager/issues/201)) |
+| Kubernetes | v1.2 - v1.8 | v1.7+ (v1.6+ after [#201](https://github.com/barklyprotects/cert-manager/issues/201)) |
 | Debugging | Look at logs | Kubernetes Events API |
 | Multi-tenancy | Not supported | Supported |
 | Distinct issuance sources per Certificate | Not supported | Supported |

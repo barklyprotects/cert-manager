@@ -17,14 +17,14 @@ import (
 	"k8s.io/client-go/tools/leaderelection/resourcelock"
 	"k8s.io/client-go/tools/record"
 
-	"github.com/jetstack/cert-manager/cmd/controller/app/options"
-	clientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
-	intscheme "github.com/jetstack/cert-manager/pkg/client/clientset/versioned/scheme"
-	informers "github.com/jetstack/cert-manager/pkg/client/informers/externalversions"
-	"github.com/jetstack/cert-manager/pkg/controller"
-	"github.com/jetstack/cert-manager/pkg/controller/clusterissuers"
-	"github.com/jetstack/cert-manager/pkg/issuer"
-	"github.com/jetstack/cert-manager/pkg/util/kube"
+	"github.com/barklyprotects/cert-manager/cmd/controller/app/options"
+	clientset "github.com/barklyprotects/cert-manager/pkg/client/clientset/versioned"
+	intscheme "github.com/barklyprotects/cert-manager/pkg/client/clientset/versioned/scheme"
+	informers "github.com/barklyprotects/cert-manager/pkg/client/informers/externalversions"
+	"github.com/barklyprotects/cert-manager/pkg/controller"
+	"github.com/barklyprotects/cert-manager/pkg/controller/clusterissuers"
+	"github.com/barklyprotects/cert-manager/pkg/issuer"
+	"github.com/barklyprotects/cert-manager/pkg/util/kube"
 	kubeinformers "k8s.io/client-go/informers"
 )
 

@@ -21,13 +21,13 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
-	clientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
-	cminformers "github.com/jetstack/cert-manager/pkg/client/informers/externalversions/certmanager/v1alpha1"
-	cmlisters "github.com/jetstack/cert-manager/pkg/client/listers/certmanager/v1alpha1"
-	controllerpkg "github.com/jetstack/cert-manager/pkg/controller"
-	"github.com/jetstack/cert-manager/pkg/issuer"
-	"github.com/jetstack/cert-manager/pkg/scheduler"
-	"github.com/jetstack/cert-manager/pkg/util"
+	clientset "github.com/barklyprotects/cert-manager/pkg/client/clientset/versioned"
+	cminformers "github.com/barklyprotects/cert-manager/pkg/client/informers/externalversions/certmanager/v1alpha1"
+	cmlisters "github.com/barklyprotects/cert-manager/pkg/client/listers/certmanager/v1alpha1"
+	controllerpkg "github.com/barklyprotects/cert-manager/pkg/controller"
+	"github.com/barklyprotects/cert-manager/pkg/issuer"
+	"github.com/barklyprotects/cert-manager/pkg/scheduler"
+	"github.com/barklyprotects/cert-manager/pkg/util"
 )
 
 type Controller struct {

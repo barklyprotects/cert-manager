@@ -3,7 +3,7 @@ package issuer
 import (
 	"fmt"
 
-	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
+	"github.com/barklyprotects/cert-manager/pkg/apis/certmanager/v1alpha1"
 )
 
 const (

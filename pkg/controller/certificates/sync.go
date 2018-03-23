@@ -13,12 +13,12 @@ import (
 	"k8s.io/apimachinery/pkg/util/runtime"
 
 	"github.com/golang/glog"
-	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
-	"github.com/jetstack/cert-manager/pkg/issuer"
-	"github.com/jetstack/cert-manager/pkg/util"
-	"github.com/jetstack/cert-manager/pkg/util/errors"
-	"github.com/jetstack/cert-manager/pkg/util/kube"
-	"github.com/jetstack/cert-manager/pkg/util/pki"
+	"github.com/barklyprotects/cert-manager/pkg/apis/certmanager/v1alpha1"
+	"github.com/barklyprotects/cert-manager/pkg/issuer"
+	"github.com/barklyprotects/cert-manager/pkg/util"
+	"github.com/barklyprotects/cert-manager/pkg/util/errors"
+	"github.com/barklyprotects/cert-manager/pkg/util/kube"
+	"github.com/barklyprotects/cert-manager/pkg/util/pki"
 )
 
 const renewBefore = time.Hour * 24 * 30

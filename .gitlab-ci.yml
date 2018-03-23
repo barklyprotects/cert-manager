@@ -2,7 +2,7 @@ image: golang:1.9
 
 variables:
   DOCKER_DRIVER: overlay
-  PKG_PATH: github.com/jetstack/cert-manager
+  PKG_PATH: github.com/barklyprotects/cert-manager
 
 services:
 - docker:1.12-dind

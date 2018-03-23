@@ -7,8 +7,8 @@ import (
 	"github.com/spf13/cobra"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"github.com/jetstack/cert-manager/cmd/ingress-shim/options"
-	"github.com/jetstack/cert-manager/pkg/util"
+	"github.com/barklyprotects/cert-manager/cmd/ingress-shim/options"
+	"github.com/barklyprotects/cert-manager/pkg/util"
 )
 
 // NewCommandStartController is a CLI handler for starting ingress-shim-controller

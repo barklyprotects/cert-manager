@@ -16,13 +16,13 @@ import (
 	"k8s.io/client-go/tools/record"
 	"k8s.io/client-go/util/workqueue"
 
-	"github.com/jetstack/cert-manager/cmd/ingress-shim/options"
-	cmv1alpha1 "github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
-	clientset "github.com/jetstack/cert-manager/pkg/client/clientset/versioned"
-	cminformers "github.com/jetstack/cert-manager/pkg/client/informers/externalversions/certmanager/v1alpha1"
-	cmlisters "github.com/jetstack/cert-manager/pkg/client/listers/certmanager/v1alpha1"
-	controllerpkg "github.com/jetstack/cert-manager/pkg/controller"
-	"github.com/jetstack/cert-manager/pkg/util"
+	"github.com/barklyprotects/cert-manager/cmd/ingress-shim/options"
+	cmv1alpha1 "github.com/barklyprotects/cert-manager/pkg/apis/certmanager/v1alpha1"
+	clientset "github.com/barklyprotects/cert-manager/pkg/client/clientset/versioned"
+	cminformers "github.com/barklyprotects/cert-manager/pkg/client/informers/externalversions/certmanager/v1alpha1"
+	cmlisters "github.com/barklyprotects/cert-manager/pkg/client/listers/certmanager/v1alpha1"
+	controllerpkg "github.com/barklyprotects/cert-manager/pkg/controller"
+	"github.com/barklyprotects/cert-manager/pkg/util"
 	extinformers "k8s.io/client-go/informers/extensions/v1beta1"
 )
 

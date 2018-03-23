@@ -6,10 +6,10 @@ import (
 	api "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
-	"github.com/jetstack/cert-manager/pkg/util"
-	"github.com/jetstack/cert-manager/pkg/util/pki"
-	testutil "github.com/jetstack/cert-manager/test/util"
+	"github.com/barklyprotects/cert-manager/pkg/apis/certmanager/v1alpha1"
+	"github.com/barklyprotects/cert-manager/pkg/util"
+	"github.com/barklyprotects/cert-manager/pkg/util/pki"
+	testutil "github.com/barklyprotects/cert-manager/test/util"
 )
 
 // WaitCertificateIssuedValid waits for the given Certificate to be

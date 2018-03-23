@@ -11,11 +11,11 @@ import (
 	kubeinformers "k8s.io/client-go/informers"
 	kubefake "k8s.io/client-go/kubernetes/fake"
 
-	"github.com/jetstack/cert-manager/pkg/apis/certmanager/v1alpha1"
-	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/azuredns"
-	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/clouddns"
-	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/cloudflare"
-	"github.com/jetstack/cert-manager/pkg/issuer/acme/dns/route53"
+	"github.com/barklyprotects/cert-manager/pkg/apis/certmanager/v1alpha1"
+	"github.com/barklyprotects/cert-manager/pkg/issuer/acme/dns/azuredns"
+	"github.com/barklyprotects/cert-manager/pkg/issuer/acme/dns/clouddns"
+	"github.com/barklyprotects/cert-manager/pkg/issuer/acme/dns/cloudflare"
+	"github.com/barklyprotects/cert-manager/pkg/issuer/acme/dns/route53"
 )
 
 type fixture struct {
