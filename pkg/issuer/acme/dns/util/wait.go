@@ -39,16 +39,7 @@ func getNameservers(path string, defaults []string) []string {
 		return defaults
 	}
 
-	systemNameservers := []string{}
-	for _, server := range config.Servers {
-		// ensure all servers have a port number
-		if _, _, err := net.SplitHostPort(server); err != nil {
-			systemNameservers = append(systemNameservers, net.JoinHostPort(server, "53"))
-		} else {
-			systemNameservers = append(systemNameservers, server)
-		}
-	}
-	return systemNameservers
+	return defaults
 }
 
 // checkDNSPropagation checks if the expected TXT record has been propagated to all authoritative nameservers.
