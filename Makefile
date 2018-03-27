@@ -1,10 +1,10 @@
 PACKAGE_NAME := github.com/barklyprotects/cert-manager
-REGISTRY := quay.io/jetstack
+REGISTRY :=registry.barkly.com/kubernetes
 APP_NAME := cert-manager
 IMAGE_TAGS := canary
 GOPATH ?= $HOME/go
 HACK_DIR ?= hack
-BUILD_TAG := build
+BUILD_TAG := barkly-annotations
 
 # Domain name to use in e2e tests. This is important for ACME HTTP01 e2e tests,
 # which require a domain that resolves to the ingress controller to be used for
